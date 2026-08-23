@@ -1,0 +1,16 @@
+.DS_Store
+.worktrees/
+
+# Local credentials and configuration
+.env
+.env.*
+!.env.example
+secrets/
+*.key
+*.pem
+
+# Editor and temporary files
+.idea/
+.vscode/
+*.swp
+*.tmp
