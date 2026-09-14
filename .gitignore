@@ -6,6 +6,9 @@
 .env.*
 !.env.example
 secrets/
+client_secret*.json
+google_client_secret.json
+google_token.json
 *.key
 *.pem
 
