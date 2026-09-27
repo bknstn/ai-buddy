@@ -1,0 +1,6 @@
+name: buddy-openai-web
+version: 1.0.0
+description: Buddy web search and source reading through Codex hosted OpenAI search.
+kind: backend
+provides_web_providers:
+  - buddy-openai
