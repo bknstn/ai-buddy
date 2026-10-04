@@ -20,6 +20,7 @@ import sys
 from datetime import datetime, timedelta
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
+from conversation_context import apply_updates, ledger_context, load_ledger, recent_dialogue, validate_updates
 
 TZ = ZoneInfo("Europe/Warsaw")
 HOME = Path(os.environ.get("HERMES_HOME", "/home/hermes/.hermes-buddy"))
@@ -199,7 +200,9 @@ def collect(mode):
         "nutrition": {"status": "not_connected", "instruction": "No intake data; infer nothing."}}
     preferences = HOME / "memories/USER.md"
     context["confirmed_preferences"] = preferences.read_text()[:18000] if preferences.exists() else ""
+    context["conversation"] = source(lambda: ledger_context(STATE, instant))
     if mode == "daily":
+        context["recent_dialogue"] = source(lambda: recent_dialogue(HOME, STATE, instant))
         context.update(calendar=source(lambda: agenda(instant)), tasks=source(lambda: tasks(instant)),
             health=source(lambda: health(instant)), learning=source(learning),
             projects=source(lambda: run(["npm", "run", "--silent", "idea:status", "--", "--json"],
@@ -237,6 +240,7 @@ def validate_proposal(value, instant):
             raise ValueError("Internal execution details are forbidden in personal messages")
     if sum(item["topic"] == "buddy" for item in items) > 1:
         raise ValueError("Only one Buddy improvement at a time")
+    validate_updates(value)
     return value
 
 
@@ -269,6 +273,22 @@ def deliver():
         proposal = queued_proposal(instant)
         if proposal.get("date") == instant.date().isoformat():
             validate_proposal(proposal, instant)
+            if proposal.get("context_revision") is not None:
+                if proposal["context_revision"] != load_ledger(STATE)["revision"]:
+                    return ""
+            dialogue = None
+            if proposal.get("dialogue_watermark") is not None:
+                dialogue = recent_dialogue(HOME, STATE, instant)
+                if proposal["dialogue_watermark"] != dialogue["watermark"]:
+                    return ""
+            if proposal.get("context_updates") and not suppressed(controls(), instant):
+                # Re-read live human evidence, rather than trusting the model's private input copy.
+                ledger, outcome = apply_updates(load_ledger(STATE), proposal,
+                    dialogue or recent_dialogue(HOME, STATE, instant), instant)
+                if outcome == "stale":
+                    return ""  # Conversation changed after preparation; don't send obsolete advice.
+                if outcome == "saved":
+                    write(STATE / "conversation.json", ledger)
         history = read(STATE / "history.json", {"emitted": [], "feedback": []})
         chosen = choose(proposal, history, controls(), instant)
         if not chosen:
@@ -331,7 +351,7 @@ def queued_proposal(instant):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=["daily", "weekly", "submit", "deliver", "status",
-        "pause", "resume", "snooze", "feedback", "focus"])
+        "pause", "resume", "snooze", "feedback", "focus", "context", "remember"])
     parser.add_argument("value", nargs="?")
     parser.add_argument("--days", type=int, default=7)
     args = parser.parse_args()
@@ -346,6 +366,18 @@ def main():
         with locked():
             write(STATE / "pending.json", value)
         print(json.dumps({"saved": True, "items": len(value["items"])}))
+    elif args.action in {"context", "remember"}:
+        with locked():
+            instant = now()
+            dialogue = recent_dialogue(HOME, STATE, instant)
+            if args.action == "remember":
+                ledger, outcome = apply_updates(load_ledger(STATE), json.load(sys.stdin), dialogue, instant)
+                if outcome == "saved":
+                    write(STATE / "conversation.json", ledger)
+                print(json.dumps({"result": outcome, "conversation": ledger_context(STATE, instant)}, ensure_ascii=False))
+            else:
+                print(json.dumps({"conversation": ledger_context(STATE, instant),
+                    "recent_dialogue": dialogue}, ensure_ascii=False))
     else:
         with locked():
             settings = controls()
