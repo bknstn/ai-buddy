@@ -4,8 +4,9 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import types
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import heartbeat as hb
 
@@ -77,10 +78,47 @@ class DeliveryTests(unittest.TestCase):
             raise ValueError("secret-token-in-private-url")
         self.assertEqual(hb.source(failure), {"status": "unavailable", "error_type": "ValueError"})
 
+    def test_internal_details_never_become_personal_messages(self):
+        for text in ("Hermes обновился", "Гермес подготовил отчет", "HEARTBEAT daily",
+                "cron job", "cronjob response", "job_id: 123", "run ID: 123",
+                "pre-run JSON", "stdout", "delivery gate", "/home/hermes/script.py",
+                "/workspace/idea-maze", "```json", "Отчёт сгенерирован автоматически"):
+            with self.subTest(text=text), self.assertRaises(ValueError):
+                hb.validate_proposal(dict(self.proposal,
+                    items=[dict(self.item, message=text)]), self.instant)
+        # Internal evidence stays available; legitimate learning content is allowed.
+        hb.validate_proposal(dict(self.proposal, items=[dict(self.item,
+            message="Для практики API попробуй разобрать один JSON-ответ.",
+            evidence="Hermes cron private evidence")]), self.instant)
+
+    def test_cached_technical_proposal_is_rejected_before_reservation(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(hb, "STATE", Path(directory)), patch.object(hb, "now", return_value=self.instant):
+            hb.write(hb.STATE / "pending.json", dict(self.proposal,
+                items=[dict(self.item, message="Hermes cron отчет")]))
+            with self.assertRaises(ValueError):
+                hb.deliver()
+            self.assertFalse((hb.STATE / "history.json").exists())
+
+    def test_context_mirror_uses_only_existing_main_chat(self):
+        mirror = Mock(return_value=True)
+        module = types.ModuleType("gateway.mirror")
+        module.mirror_to_session = mirror
+        with tempfile.TemporaryDirectory() as directory, patch.object(hb, "STATE", Path(directory)), patch.dict("sys.modules", {"gateway.mirror": module}):
+            hb.write(hb.STATE / "installation.json", {"telegram_chat_id": "123"})
+            hb.mirror_personal_message(self.item["message"])
+            self.assertEqual(mirror.call_args.args[:2], ("telegram", "123"))
+            self.assertIn("факт доставки здесь не подтверждён", mirror.call_args.args[2])
+            self.assertIsNone(mirror.call_args.kwargs["thread_id"])
+            self.assertEqual(mirror.call_args.kwargs["role"], "user")
+            mirror.side_effect = RuntimeError("private-token")
+            with self.assertLogs(level="WARNING") as logs:
+                hb.mirror_personal_message(self.item["message"])
+            self.assertNotIn("private-token", " ".join(logs.output))
+
     def test_delivery_reservation_persists_and_blocks_replay(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(hb, "STATE", Path(directory)), patch.object(hb, "now", return_value=self.instant):
             hb.write(hb.STATE / "pending.json", self.proposal)
-            self.assertIn(self.item["message"], hb.deliver())
+            self.assertEqual(self.item["message"], hb.deliver())
             self.assertEqual(hb.deliver(), "")
             self.assertEqual(len(hb.read(hb.STATE / "history.json", {})["emitted"]), 1)
             self.assertEqual(list(hb.STATE.glob("*.tmp")), [])
