@@ -1,0 +1,5 @@
+name: buddy-session-policy
+version: 1.0.0
+description: Natural daily conversation boundaries in Buddy's main private Telegram chat.
+provides_hooks:
+  - pre_gateway_dispatch
