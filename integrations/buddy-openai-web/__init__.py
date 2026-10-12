@@ -1,4 +1,9 @@
-"""Buddy-only hosted search. Never falls back to API keys or Tavily."""
+"""Buddy hosted search: Codex first, existing OpenAI API key on failure."""
+import logging
+import threading
+import time
+
+logger = logging.getLogger(__name__)
 from urllib.parse import urlparse
 from agent.web_search_provider import WebSearchProvider
 
@@ -33,21 +38,55 @@ def collect(events):
 
 class OpenAIWeb(WebSearchProvider):
     name = 'buddy-openai'
-    display_name = 'OpenAI web via Codex subscription'
+    display_name = 'OpenAI web with API fallback'
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._retry_at = 0.0
+        self._failures = 0
 
     def is_available(self):
         from hermes_cli.config import load_config
-        return (load_config().get('model') or {}).get('provider') == 'openai-codex'
+        from agent.secret_scope import get_secret
+        return ((load_config().get('model') or {}).get('provider') == 'openai-codex'
+                or bool(get_secret('OPENAI_API_KEY')))
 
     def supports_extract(self):
         return True
 
     def _run(self, prompt):
+        with self._lock:
+            try_primary = time.monotonic() >= self._retry_at
+        if try_primary:
+            try:
+                result = self._request(prompt, 'openai-codex')
+            except Exception:
+                # Never log provider exceptions: they can contain credentials or page text.
+                with self._lock:
+                    self._failures = min(self._failures + 1, 5)
+                    self._retry_at = time.monotonic() + min(60 * 2 ** (self._failures - 1), 900)
+                logger.warning('Buddy hosted web: Codex unavailable; trying OpenAI API')
+            else:
+                with self._lock:
+                    self._failures = 0
+                    self._retry_at = 0.0
+                return result
+        return self._request(prompt, 'openai-api')
+
+    def _request(self, prompt, provider):
         from hermes_cli.runtime_provider import resolve_runtime_provider
         from openai import OpenAI
-        r = resolve_runtime_provider(requested='openai-codex', target_model='gpt-6-sol')
-        if r['provider'] != 'openai-codex' or urlparse(r['base_url']).hostname != 'chatgpt.com':
-            raise RuntimeError('Buddy search requires Codex subscription routing')
+        from agent.secret_scope import get_secret
+        if provider == 'openai-api':
+            key = get_secret('OPENAI_API_KEY')
+            if not key:
+                raise RuntimeError('OpenAI API credential unavailable')
+            # Pin the destination; do not inherit the main model's Codex URL.
+            r = {'api_key': key, 'base_url': 'https://api.openai.com/v1'}
+        else:
+            r = resolve_runtime_provider(requested='openai-codex', target_model='gpt-6-sol')
+            if r['provider'] != 'openai-codex' or urlparse(r['base_url']).hostname != 'chatgpt.com':
+                raise RuntimeError('Buddy search requires Codex subscription routing')
         with OpenAI(api_key=r['api_key'], base_url=r['base_url'], timeout=90, max_retries=1) as client:
             with client.responses.create(
                 model='gpt-6-sol', reasoning={'effort': 'medium'}, store=False, stream=True,
@@ -68,7 +107,7 @@ class OpenAIWeb(WebSearchProvider):
                 for i, (url, title) in enumerate(list(sources.items())[:limit])
             ], 'summary': text, 'provider': self.name}}
         except Exception:
-            return {'success': False, 'error': 'OpenAI hosted search failed; no fallback provider was used.'}
+            return {'success': False, 'error': 'OpenAI hosted search unavailable after trying subscription and API routes.'}
 
     def extract(self, urls, **kwargs):
         results = []
