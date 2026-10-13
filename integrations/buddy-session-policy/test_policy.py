@@ -445,6 +445,13 @@ class NativeTests(unittest.IsolatedAsyncioTestCase):
                 self.policy.attach(kwargs["gateway"])
             return []
         self.stack.enter_context(patch("hermes_cli.plugins.invoke_hook", side_effect=hooks))
+        # v0.21.7 dispatches this lifecycle hook asynchronously; retain the
+        # synchronous mock for compatibility checks against v0.21.3.
+        import hermes_cli.plugins as plugins
+        if hasattr(plugins, "ainvoke_hook"):
+            async def async_hooks(name, **kwargs):
+                return hooks(name, **kwargs)
+            self.stack.enter_context(patch.object(plugins, "ainvoke_hook", side_effect=async_hooks))
         return runner
 
     async def test_native_gateway_dispatch_keeps_response_generation_and_queue(self):
