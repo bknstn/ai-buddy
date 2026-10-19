@@ -1,0 +1,7 @@
+name: buddy-live-progress
+version: 1.0.0
+description: Brief live-task commentary and truthful waiting updates in Buddy's owner Telegram DM.
+provides_hooks:
+  - pre_gateway_dispatch
+provides_tools:
+  - buddy_progress
