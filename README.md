@@ -78,3 +78,9 @@ See the [operations guide](docs/operations.md) for the reference layout and depl
 - [Agent instructions](AGENTS.md): repository boundaries for coding agents.
 
 README describes the project and how to use this repository. Historical decisions belong in ADRs; deployment logs, personal profiles, transcripts, credentials and runtime databases belong outside the public repository.
+
+## License
+
+The code and documentation in this repository are licensed under the [MIT License](LICENSE).
+
+Hermes Agent and separately maintained domain engines are governed by their own licenses.
