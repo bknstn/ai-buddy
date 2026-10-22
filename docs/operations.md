@@ -49,6 +49,8 @@ Keep private files restricted to the runtime account: normally `0600` for files 
 
 Do not deploy unpublished feature-branch commits or treat a transferred bundle as proof of publication. If repository access is unavailable, verify the published commit independently before transferring source without credentials.
 
+After an explicitly authorized public-history rewrite, an existing deployment checkout may no longer fast-forward. Verify that its tracked files are clean and that it has no unique unpublished work, then align its `main` to the exact verified published commit. Preserve untracked/private files and restore ordinary fast-forward deployments afterwards. Never merge the old history into the cleaned branch. Use a credential-free HTTPS remote for public source when SSH repository access is unavailable.
+
 ## Maintain upstream Hermes
 
 Buddy follows tested stable release tags. Compare HEAD with the exact published release commit; a clean detached HEAD is expected. Domain and integration repositories retain the published-`main` policy. These policies apply to different components.
