@@ -9,8 +9,39 @@ secrets/
 client_secret*.json
 google_client_secret.json
 google_token.json
+*token*.json
+auth.json
+credentials*.json
+service-account*.json
 *.key
 *.pem
+*.p12
+*.pfx
+config.local.*
+
+# Private runtime state and exports
+.hermes*/
+plugin-data/
+sessions/
+memories/
+logs/
+backups/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.log
+*.bak
+*.backup
+
+# Python validation artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
 
 # Editor and temporary files
 .idea/
