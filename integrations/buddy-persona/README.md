@@ -21,7 +21,7 @@ The stable v0.21.7 gateway freezes agents and their system prompts. Its cache
 signature does not include `agent.text_verbosity`; a config edit alone does not
 update a cached agent. Refresh Buddy's instruction cache only while idle,
 preserving the existing session and messages. Fresh scheduled runs read the
-updated configuration and prompt. Do not restart Tutor for a Buddy preference.
+updated configuration and prompt. Scope the refresh to Buddy.
 
 Telegram's native adapter splits complete replies with numbered parts,
 UTF-16-aware sizing, natural break points and balanced code fences. Cron passes

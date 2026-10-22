@@ -192,7 +192,7 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         for ev, src in [(event(internal=True), source()), (event(), source(thread_id="topic")),
                         (event(), source(user_id="other")), (event(), source(chat_id="other")),
                         (event(text="/status"), source()), (event(), source(platform="email")),
-                        (event(), source(profile="tutor"))]:
+                        (event(), source(profile="other-profile"))]:
             await self.gateway._handle_message_with_agent(ev, src, "main", 1)
         self.assertEqual(observed, [False]*7)
         self.assertEqual(self.policy.turns, set())

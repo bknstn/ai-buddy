@@ -10,7 +10,7 @@ Each record contains context, a decision and consequences. They deliberately omi
 | 0001 | 2026-09-13 | [Use one chat and an unmodified upstream runtime](0001-single-chat-and-upstream-runtime.md) |
 | 0002 | 2026-09-14 | [Keep service access scoped and deployment credentials private](0002-scoped-service-access.md) |
 | 0003 | 2026-09-25 | [Publish reviewed source before deployment](0003-publish-before-deploy.md) |
-| 0004 | 2026-09-26 | [Separate Buddy and Tutor runtime instances](0004-independent-instances.md) |
+| 0004 | 2026-09-26 | [Isolate Buddy runtime and operational scope](0004-independent-instances.md) |
 | 0005 | 2026-09-27 | [Keep assistant web research in a profile-local backend](0005-hosted-web-backend.md) |
 | 0006 | 2026-09-29 | [Use one assistant across explicit domain tracks](0006-persona-and-domain-tracks.md) |
 | 0007 | 2026-10-02 | [Separate private review from conditional delivery](0007-bounded-heartbeat.md) |

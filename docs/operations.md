@@ -6,17 +6,17 @@ The layout below is a deployment convention, not a public endpoint or evidence o
 
 ## Select the instance
 
-Work launched from this repository defaults to AI Buddy. Tutor is a separate instance and is outside a Buddy-only change.
+This repository covers AI Buddy only. Keep deployment instructions and runtime context limited to this assistant.
 
-| Component | AI Buddy | Tutor |
-| --- | --- | --- |
-| Runtime home | `/home/hermes/.hermes-buddy` | `/home/hermes/.hermes-tutor` |
-| Upstream checkout | `/home/hermes/runtimes/hermes-buddy` | `/home/hermes/runtimes/hermes-tutor` |
-| Interpreter | `/home/hermes/runtimes/hermes-buddy/venv/bin/python` | `/home/hermes/runtimes/hermes-tutor/venv/bin/python` |
-| User service | `hermes-buddy.service` | `hermes-tutor.service` |
-| Scoped CLI | `/home/hermes/.local/bin/hermes-buddy` | `/home/hermes/.local/bin/hermes-tutor` |
+| Component | AI Buddy |
+| --- | --- |
+| Runtime home | `/home/hermes/.hermes-buddy` |
+| Upstream checkout | `/home/hermes/runtimes/hermes-buddy` |
+| Interpreter | `/home/hermes/runtimes/hermes-buddy/venv/bin/python` |
+| User service | `hermes-buddy.service` |
+| Scoped CLI | `/home/hermes/.local/bin/hermes-buddy` |
 
-Each instance needs its own real home directory, checkout, interpreter, dependencies, configuration, bot token, provider authorization and state. Do not share OAuth refresh tokens or enable automatic profile multiplex migration. The legacy `.hermes` and `hermes-gateway.service` aliases refer only to Buddy; prefer canonical names.
+Buddy has its own real home directory, checkout, interpreter, dependencies, configuration, bot token, provider authorization and state. Keep these scoped to Buddy. Do not share OAuth refresh tokens or enable automatic profile multiplex migration. The legacy `.hermes` and `hermes-gateway.service` aliases refer only to Buddy; prefer canonical names.
 
 ## Start with read-only checks
 
@@ -28,7 +28,7 @@ ssh hermes-vps '/home/hermes/.local/bin/hermes-buddy gateway status'
 
 Logs may contain personal or operational data. Inspect them privately and do not paste raw output into public issues or commits. Routine work uses the dedicated user; root access is reserved for host administration.
 
-Direct Buddy Python commands must set `HERMES_HOME=/home/hermes/.hermes-buddy` and use Buddy's interpreter. Do not reuse the Tutor environment.
+Direct Buddy Python commands must set `HERMES_HOME=/home/hermes/.hermes-buddy` and use Buddy's interpreter.
 
 ## Source and data layout
 
@@ -55,6 +55,6 @@ After an explicitly authorized public-history rewrite, an existing deployment ch
 
 Buddy follows tested stable release tags. Compare HEAD with the exact published release commit; a clean detached HEAD is expected. Domain and integration repositories retain the published-`main` policy. These policies apply to different components.
 
-The recorded compatibility baseline for the included integrations is v0.21.7, not a claim about the latest upstream release. Before upgrading, check plugin hooks, private gateway signatures, dependencies and provider/tool continuations in isolation. Drain Buddy, create a temporary private backup, apply the authorized update and verify startup and state before removing temporary files. Tutor requires its own maintenance scope.
+The recorded compatibility baseline for the included integrations is v0.21.7, not a claim about the latest upstream release. Before upgrading, check plugin hooks, private gateway signatures, dependencies and provider/tool continuations in isolation. Drain Buddy, create a temporary private backup, apply the authorized update and verify startup and state before removing temporary files.
 
 Frozen Hermes agents can retain an old prompt or configuration after a file edit. Refresh the intended cache while idle and preserve conversation history; do not reset all sessions to load a preference.

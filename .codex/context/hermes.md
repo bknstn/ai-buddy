@@ -14,15 +14,13 @@ conventions; inspect privately before claiming current service health.
 
 ## Instance scope
 
-Default to AI Buddy. Use `/home/hermes/.hermes-buddy`, runtime checkout
+This context covers AI Buddy only. Use `/home/hermes/.hermes-buddy`, runtime checkout
 `/home/hermes/runtimes/hermes-buddy`, its `venv/bin/python`, scoped CLI
 `/home/hermes/.local/bin/hermes-buddy` and `hermes-buddy.service`.
 Set `HERMES_HOME` explicitly for direct Python commands.
 
-Tutor is separate: `/home/hermes/.hermes-tutor`, runtime
-`/home/hermes/runtimes/hermes-tutor`, its own interpreter, CLI and
-`hermes-tutor.service`. Do not touch it during Buddy-only work. Do not share
-OAuth refresh tokens or restore automatic profile multiplex migration.
+Keep other agents' configuration, paths and responsibilities out of Buddy's
+context. Do not share OAuth refresh tokens or restore automatic profile multiplex migration.
 The legacy `.hermes` and `hermes-gateway.service` aliases refer only to Buddy.
 
 The operator-defined `ssh hermes-vps` alias logs in as `hermes`. Start with

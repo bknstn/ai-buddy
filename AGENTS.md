@@ -36,17 +36,17 @@ Use this repository to understand the current state:
 
 ## Instance selection and canonical VPS paths
 
-For work launched from this repository, default to **AI Buddy**. Tutor is a
-separate instance, not a Buddy profile. Include Tutor in changes only when the
-user's request covers it. Do not restart both gateways for a Buddy-only task.
+This repository covers **AI Buddy only**. Keep its context, deployment instructions
+and runtime configuration scoped to this assistant. Other agents belong in their
+own repositories and must not be added to Buddy's context or responsibilities.
 
-| Component | AI Buddy | Tutor |
-| --- | --- | --- |
-| HERMES_HOME (real directory) | `/home/hermes/.hermes-buddy` | `/home/hermes/.hermes-tutor` |
-| Upstream runtime checkout | `/home/hermes/runtimes/hermes-buddy` | `/home/hermes/runtimes/hermes-tutor` |
-| Python | `/home/hermes/runtimes/hermes-buddy/venv/bin/python` | `/home/hermes/runtimes/hermes-tutor/venv/bin/python` |
-| systemd user service | `hermes-buddy.service` | `hermes-tutor.service` |
-| Scoped CLI | `/home/hermes/.local/bin/hermes-buddy` | `/home/hermes/.local/bin/hermes-tutor` |
+| Component | AI Buddy |
+| --- | --- |
+| HERMES_HOME (real directory) | `/home/hermes/.hermes-buddy` |
+| Upstream runtime checkout | `/home/hermes/runtimes/hermes-buddy` |
+| Python | `/home/hermes/runtimes/hermes-buddy/venv/bin/python` |
+| systemd user service | `hermes-buddy.service` |
+| Scoped CLI | `/home/hermes/.local/bin/hermes-buddy` |
 
 Connect with `ssh hermes-vps` as Linux user `hermes`. Start with read-only checks:
 
@@ -59,15 +59,14 @@ ssh hermes-vps '/home/hermes/.local/bin/hermes-buddy gateway status'
 For direct Buddy Python commands, set `HERMES_HOME=/home/hermes/.hermes-buddy`
 and use Buddy's Python above. For authorized framework maintenance, operate
 in Buddy's runtime checkout; this local repository contains context only.
-Each instance has its own checkout, interpreter, venv, Node dependencies,
+Buddy has its own checkout, interpreter, venv, Node dependencies,
 configuration, state, bot token and OAuth session. Do not share/copy OAuth
 refresh tokens or re-enable automatic profile multiplex migration.
 
 Legacy `/home/hermes/.hermes` points only to `.hermes-buddy`; the
 `hermes-agent` link inside Buddy points to its own runtime. The legacy
 `hermes-gateway.service` is an alias for `hermes-buddy.service`. Prefer the
-canonical names above in new commands and documentation. Tutor's home is a
-real directory, not `.hermes/profiles/tutor`.
+canonical names above in new commands and documentation.
 
 Existing domain repositories remain in `/home/hermes/workspace`; Idea Maze
 runtime data still lives at `/workspace/idea-maze`. See `docs/operations.md`
@@ -93,7 +92,7 @@ Buddy's upstream Hermes runtime follows tested stable release tags, as approved
 detached HEAD at that tag is expected. Do not require parity with upstream
 `origin/main` or install newer untested main commits. Check our integrations
 before upgrading, drain Buddy, back up temporarily, verify after startup, then
-remove task-created backups and staging once checks pass. Tutor is separate.
+remove task-created backups and staging once checks pass.
 
 Our production domain/integration repositories on the VPS run on `main`. Merge and push
 reviewed changes to GitHub `main` before deployment; update VPS `main` by

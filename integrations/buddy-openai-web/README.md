@@ -36,7 +36,7 @@ medium. Native recovery handles quota/rate limits, auth failures and exhausted
 transient retries, with its own primary retry/cooldown policy. API has independent
 billing and limits; a failed API route remains a terminal error.
 
-TAVILY_API_KEY remains for the independent Idea Maze pipeline. Tutor is separate.
+TAVILY_API_KEY remains for the independent Idea Maze pipeline.
 
 ## Validation and deployment
 

@@ -94,7 +94,7 @@ compression:
 
 Gracefully restart only `hermes-buddy.service` to load the new plugin. Existing
 conversation routing and transcripts must remain unchanged by installation;
-the first eligible real greeting performs the boundary. Tutor is untouched.
+the first eligible real greeting performs the boundary. The policy applies only to Buddy.
 
 ## Validation
 

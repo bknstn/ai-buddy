@@ -1,4 +1,4 @@
-# ADR 0004: Separate Buddy and Tutor runtime instances
+# ADR 0004: Isolate Buddy runtime and operational scope
 
 Date: 2026-09-26
 
@@ -10,8 +10,8 @@ Profile multiplexing coupled environments, authorization state and upgrades for 
 
 ## Decision
 
-Give Buddy and Tutor independent real home directories, runtime checkouts, interpreters, dependencies, services, configuration and OAuth sessions. Scope every operational command to the intended instance.
+Give Buddy its own real home directory, runtime checkout, interpreter, dependencies, service, configuration and OAuth session. Scope its repository context and every operational command to Buddy.
 
 ## Consequences
 
-Buddy-only work must not restart or update Tutor. Legacy aliases refer only to Buddy. Both can share a Linux user, so this is operational separation rather than a filesystem security boundary.
+Buddy's repository and instructions describe only its own runtime and responsibilities. Legacy aliases refer only to Buddy. A dedicated home and service provide operational separation; sharing a Linux account does not provide a filesystem security boundary.

@@ -132,7 +132,7 @@ class GreetingTests(unittest.TestCase):
                         {"metadata": {"forwarded": True}}):
             self.assertFalse(policy.is_owner_input(event(**changes), "42", "42"))
         for changes in ({"chat_id": "43"}, {"user_id": "43"}, {"thread_id": "5"},
-                        {"chat_type": "group"}, {"profile": "tutor"}, {"is_bot": True},
+                        {"chat_type": "group"}, {"profile": "other-profile"}, {"is_bot": True},
                         {"platform": SimpleNamespace(value="email")}):
             value = event()
             value.source.__dict__.update(changes)
