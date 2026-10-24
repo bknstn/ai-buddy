@@ -47,3 +47,22 @@ For the existing Hermes integration set, v0.21.7 is the recorded compatibility b
 Keep README as the project introduction and usage guide. Put design rationale in chronologically numbered ADRs; keep operational conventions generic and current. Preserve historical records but identify decisions that are superseded. Live installation details and audit evidence belong in private operational notes.
 
 Follow `SECURITY.md`. Review staged files, history, filenames, author metadata and prose before publishing. `.gitignore` is only a guardrail; it cannot remove a file already tracked or clean Git history.
+
+## Open-source repository safety
+
+This repository is intended to be public/open source.
+
+Before modifying, committing, or publishing code, read and follow
+`OPEN_SOURCE_REPO_SAFETY.md`.
+
+Treat the rules in that document as mandatory repository-level instructions.
+
+Before every commit:
+- review the complete staged diff;
+- apply the pre-commit safety gate defined in `OPEN_SOURCE_REPO_SAFETY.md`;
+- remove or generalize private operational details;
+- never commit secrets, credentials, personal data, employer/client information,
+  proprietary context, or maintainer-specific deployment configuration.
+
+If you are uncertain whether some information is safe for a public repository,
+do not commit it. Prefer a generic placeholder or ask for clarification.
