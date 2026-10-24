@@ -10,7 +10,7 @@ Conversation handling and domain workflows need different ownership and release 
 
 ## Decision
 
-Use Hermes for conversation, memory, routing, approvals and scheduling. Keep product discovery and health logic in separate engines with stable CLI contracts and structured outputs. Keep this repository as integration source and architecture context.
+Use Hermes for conversation, memory, routing, approvals and scheduling. Keep domain-specific business logic in separately maintained engines with stable CLI contracts and structured outputs. Keep this repository as integration source and architecture context.
 
 ## Consequences
 

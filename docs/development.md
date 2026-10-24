@@ -1,44 +1,44 @@
 # Development and validation
 
-Use Python 3.11 or later for the standalone suites. They use stdlib `unittest`, synthetic data and automatically cleaned temporary directories. Set `PYTHONDONTWRITEBYTECODE=1` to avoid leaving bytecode helpers behind.
+The profile CLI targets Python 3.11 or later and uses only the standard library. Its commands are local and do not access the network.
 
-## Local checks
+## Work with a profile
 
-From the repository root:
+Run from the repository root. Use a private profile directory outside the checkout and replace the example path with a location you control:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s integrations/buddy-heartbeat -v
-PYTHONDONTWRITEBYTECODE=1 python3 integrations/buddy-session-policy/test_policy.py
-PYTHONDONTWRITEBYTECODE=1 python3 integrations/buddy-live-progress/test_progress.py
+python3 -m buddy init --path /path/to/private/assistant-profile
+python3 -m buddy check --profile /path/to/private/assistant-profile
+python3 -m buddy plan --profile /path/to/private/assistant-profile --format text
+python3 -m buddy plan --profile /path/to/private/assistant-profile --format json
+```
+
+`init` refuses an existing destination and locations that resolve inside the repository. It creates only a private `config.toml`, with `runtime.home` set to `<profile>/runtime`; it does not create that runtime directory, populate personal instructions or enable integrations. `check` accepts the profile directory or its `config.toml` and checks the profile structure, runtime adapter and supported feature IDs. It does not require an installed runtime or runtime-home directory; it reports whether the path currently exists without inspecting its contents. Both `check` and `plan` reject profile paths or runtime homes inside the repository, including paths that resolve there through symlinks. `plan` accepts the same profile input and prints mappings for shared instruction fragments, an optional private-instruction pattern, selected runtime features and adapter-suggested environment values. The plan does not read private instruction contents, apply environment values, install or compose files, or execute or inspect a runtime.
+
+Never put live credentials, personal facts, real conversation samples or domain data in a demonstration profile that will be committed. The schema's `runtime.home` is a private filesystem path; use a placeholder in examples and keep real profile files outside Git.
+
+## Repository checks
+
+Start with:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 git diff --check
 ```
 
-The suites cover notification gates and freshness, context provenance and privacy boundaries, greeting/session policy, active-work protection and progress lifecycle. Native session cases skip without Hermes. Running tests does not install plugins, execute collectors or send messages.
+Run the project checks documented in the relevant runtime module before proposing integration changes. Hermes plugin and gateway checks need a separate test environment with the compatible upstream runtime and dependencies; they cannot be proven by the profile CLI. Use a private test home, synthetic identifiers and mocked or controlled transports. Do not use a production home or send a real external message as a test without explicit authorization.
 
-## Runtime-dependent checks
+For new runtime modules, document their supported runtime versions, required hooks, installation steps, tests and capability limits. Validate that the plan output accurately describes the files the module will use. A successful local profile check does not establish runtime compatibility, provider access, channel delivery or domain-engine correctness.
 
-Hermes is not vendored here. Run the following only in a separately prepared test environment with the compatible upstream runtime and its dependencies on `PYTHONPATH`:
+## Public-source review
 
-```bash
-PYTHONDONTWRITEBYTECODE=1 python integrations/buddy-openai-web/test_backend.py
-PYTHONDONTWRITEBYTECODE=1 python integrations/buddy-live-progress/test_native.py
-PYTHONDONTWRITEBYTECODE=1 python integrations/buddy-session-policy/test_policy.py
-python -m hermes_cli.main plugins validate /path/to/plugin
-```
-
-Use an isolated `HERMES_HOME`, synthetic owner IDs and mocked transport for native tests. Native harness helpers also require the runtime's pytest dependency. Follow the individual guides for plugin requirements and in-process isolation. Do not use a production home for tests or send a real Telegram test message without authorization.
-
-Passing standalone tests does not establish compatibility with a changed runtime, live provider access or successful delivery. Report those limits with validation results.
-
-## Public-source checks
-
-Install [Gitleaks](https://github.com/gitleaks/gitleaks) separately, then scan both files and history:
+Install Gitleaks separately if available, then scan the working tree and Git history:
 
 ```bash
 gitleaks dir --redact=100 .
 gitleaks git --redact=100 --log-opts="--all --full-history" .
 ```
 
-A directory scan includes ignored local files. A finding there must be checked against the tracked tree and historical objects before concluding it was published. Do not print the credential to investigate it. Git history scans do not detect all personal information; review prose, examples, filenames, commit authors and messages as well.
+A directory scan may include ignored local files. Check findings against tracked files and history without printing credentials. Automated scans do not find every personal detail; review prose, examples, filenames, commit messages and author metadata manually. Use synthetic fixtures and generic paths.
 
-Never use production credentials or real conversation/health records as fixtures. Clean up one-off probes, scripts, validation copies and downloaded audit tools on every host used for a task. Preserve implementation source and requested deliverables.
+Remove one-off probes, temporary scripts, validation copies and downloaded audit tools when the task is complete. Preserve requested deliverables, implementation source and pre-existing user files.

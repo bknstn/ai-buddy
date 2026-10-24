@@ -1,4 +1,4 @@
-# ADR 0006: Use one assistant across explicit domain tracks
+# ADR 0006: Use one assistant across explicitly selected domains
 
 Date: 2026-09-29
 
@@ -6,12 +6,12 @@ Status: Accepted
 
 ## Context
 
-Health, product discovery, learning and planning should share a coherent conversation without merging their implementations or inventing new commitments.
+Requests from several optional domains should share a coherent conversation without merging their implementations or inventing new commitments.
 
 ## Decision
 
-Keep a reusable role fragment that routes requests to the relevant domain skill and current workspace. Support practical learning and planning while retaining explicit priorities, realistic capacity and the existing action permissions.
+Keep a reusable role fragment that routes only to an explicitly configured domain skill and workspace. Respect the user's selected priorities and current permissions; do not create goals or commitments from an interesting topic.
 
 ## Consequences
 
-An ordinary question does not require coaching. An interesting topic is not automatically a goal. Learning notes and learner profiles stay in their separate private workspace.
+An ordinary question does not require coaching. An interesting topic is not automatically a goal. Domain notes and records stay with their owning service or private workspace. ADR 0017 supersedes the original bundled domain-track persona as a public default.

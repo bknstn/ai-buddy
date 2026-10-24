@@ -1,86 +1,91 @@
 # AI Buddy
 
-AI Buddy is a personal assistant built around [Hermes Agent](https://github.com/NousResearch/hermes-agent). It brings everyday questions, planning, learning and domain-specific workflows into one Telegram conversation.
+AI Buddy is a public starter repository for building a configurable AI assistant. Clone or fork it, choose an execution runtime, and keep each instance's profile and private instructions outside the repository.
 
-This repository contains the integration code, assistant instructions and architecture documentation that connect those pieces. It is intended for developers exploring how to build a personal assistant with durable context, bounded initiative and clear operational boundaries.
+The starter includes a small local profile CLI, generic assistant and communication instructions, a runtime-module boundary, and optional adapter examples. Hermes is the only shipped runtime adapter today. Other runtimes require their own module and independent compatibility work; the shared profile schema does not make legacy Hermes integrations portable by itself. This repository does not include or install the Hermes runtime, connect a channel, provision credentials, or provide domain-engine implementations. It is a foundation for customization, not a ready-to-run hosted assistant.
 
-Hermes is a separate upstream runtime. Domain engines and private runtime data live outside this repository. This is an integration reference, not a standalone application or a one-command installer.
+## Quick start
 
-## What Buddy does
+Requirements: Python 3.11 or later. The profile commands use only the Python standard library and do not access the network.
 
-- **One conversation:** handle requests, reminders and useful reports in the same Telegram chat.
-- **Context and continuity:** retain source-backed decisions and preferences for later reviews, while allowing a greeting to start a fresh daily session.
-- **Useful initiative:** prepare private daily and weekly reviews; send a note only when there is a fresh, actionable signal within a deterministic notification budget.
-- **Domain coordination:** call separate engines for product discovery, recovery and training, and learning through documented CLI contracts.
-- **Web research:** use hosted search and cited summaries, with an optional paid API fallback.
-- **Natural communication:** give concise answers, complete longer reports and brief progress updates during substantial work.
-
-These capabilities depend on the integrations and data sources an operator configures. Publishing the source does not grant access to any running assistant, account or personal data.
-
-## How it fits together
-
-```mermaid
-flowchart TD
-    User[User in Telegram] <--> Hermes[Hermes Agent]
-    Hermes <--> Plugins[Buddy plugins and instructions]
-    Hermes --> Domains[Domain engines via CLI and structured output]
-    Hermes --> Services[Authorized calendar, tasks and other services]
-    Plugins --> Private[Private context and delivery state]
-```
-
-Hermes owns conversation handling, tools, memory and scheduling. Buddy integrations add specific interaction policies. Domain repositories own their business logic, tests and data contracts; they do not become part of the assistant runtime.
-
-## Explore the integrations
-
-| Integration | Responsibility | Entry point |
-| --- | --- | --- |
-| Heartbeat | Bounded source collection, private reviews, context ledger and conditional delivery | [Guide](integrations/buddy-heartbeat/README.md) |
-| Session policy | Greeting-triggered daily sessions with safeguards for active work and replayed inputs | [Guide](integrations/buddy-session-policy/README.md) |
-| Live progress | Completed commentary and scoped waiting notices during a real user task | [Guide](integrations/buddy-live-progress/README.md) |
-| OpenAI web | Hosted search, explicit page summaries and provider fallback | [Guide](integrations/buddy-openai-web/README.md) |
-| Persona | Reusable role, communication and report instructions | [Guide](integrations/buddy-persona/README.md) |
-| Google Calendar | Skill instructions for authorized event reads and changes | [Skill source](integrations/google-calendar/SKILL.md) |
-
-The Calendar directory contains a skill, not a bundled Google OAuth client. Heartbeat expects separately installed domain CLIs and authorized data sources. Plugin manifests and Python source are included; account setup and production configuration are operator responsibilities.
-
-## Get started
-
-To read the design or run isolated tests, clone this repository and use Python 3.11 or later:
+Clone the public repository, then create a private profile outside the checkout. The profile path's parent directory must already exist.
 
 ```bash
-git clone https://github.com/bknstn/ai-buddy.git
+git clone https://github.com/bknstn/ai-buddy.git ai-buddy
 cd ai-buddy
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s integrations/buddy-heartbeat -v
-PYTHONDONTWRITEBYTECODE=1 python3 integrations/buddy-session-policy/test_policy.py
-PYTHONDONTWRITEBYTECODE=1 python3 integrations/buddy-live-progress/test_progress.py
+python3 -m buddy init --path /path/to/private/assistant-profile
+python3 -m buddy check --profile /path/to/private/assistant-profile
+python3 -m buddy plan --profile /path/to/private/assistant-profile --format text
 ```
 
-These suites use synthetic fixtures. They do not require live credentials or send Telegram messages. Native Hermes tests are skipped when its runtime is unavailable. The web backend and native gateway checks need a separate Hermes environment; see [development and validation](docs/development.md).
+`init` creates only a private `config.toml`, with `runtime.home` set to a private `runtime/` directory beneath the profile. Edit the file to set an appropriate name and timezone or choose another private runtime location. The default feature list is empty. Add personal guidance as Markdown files under the profile's `instructions/` directory; the CLI does not create these files or enable integrations. Keep identity details, preferences, credentials and real user data out of Git. `check` validates the profile structure, runtime adapter and selected feature IDs; it does not require an installed runtime. `plan` prints manual mappings for shared instructions, a pattern for private instructions, selected runtime features and adapter-suggested environment values. It does not read or compose private instruction files, apply environment values, install anything, run or inspect a runtime.
 
-To adapt Buddy to your own installation:
+The default configuration shape is:
 
-1. Set up Hermes separately, following its upstream instructions.
-2. Read the relevant integration guide and its compatibility limits. The recorded compatibility baseline is Hermes **v0.21.7**; session and progress plugins use private gateway interfaces.
-3. Configure your own private runtime home, owner/chat identifiers, credentials and domain workspaces outside Git.
-4. Install only the integrations you need, validate them against that runtime and enable scheduled work only with explicit authorization.
+```toml
+schema_version = 1
 
-See the [operations guide](docs/operations.md) for the reference layout and deployment workflow. Running a collector or delivery script is an operational action, not a local setup step.
+[assistant]
+name = "My Assistant"
+timezone = "UTC"
 
-## Design and documentation
+[runtime]
+id = "hermes"
+home = "/absolute/private/path/runtime"
 
-- [Architecture](docs/architecture.md): component boundaries, context flow and trade-offs.
-- [Architecture decisions](docs/adr/README.md): numbered records in chronological order, starting with ADR 0000.
-- [Development](docs/development.md): local checks and runtime-dependent validation.
-- [Operations](docs/operations.md): instance selection, deployment and maintenance.
-- [Idea Maze design scope](docs/plans/idea-maze.md): a domain-engine plan retained as design context.
-- [Security and privacy](SECURITY.md): what belongs in source, secret scanning and disclosure.
-- [Contributing](CONTRIBUTING.md): how to propose and validate changes.
+[features]
+enabled = []
+```
+
+These are replaceable examples. Set an appropriate name and timezone for your assistant, select a runtime module, and enable only capabilities you have configured and reviewed. Profile configuration is private and is not a deployment secret store.
+
+For example, to ask the Hermes planner to include the optional generic persona instructions, change the feature list in the private profile to:
+
+```toml
+[features]
+enabled = ["buddy-persona"]
+```
+
+This selects manual mappings only. Review and adapt the fragments before composing them into a runtime prompt. Do not enable a feature just because it is listed in the module.
+
+## Customize and choose a runtime
+
+1. Edit the private profile's assistant name and timezone, then add your own instructions under its `instructions/` directory. The CLI does not create or read those private instruction files.
+2. Keep the default `enabled = []` unless you have deliberately selected an optional feature. Check and review the plan before applying any mapping manually.
+3. For Hermes, install the upstream runtime separately by following the [official Hermes Agent setup guide](https://github.com/NousResearch/hermes-agent). Set its private home and environment explicitly, then review the [Hermes adapter guide](runtimes/hermes/README.md) for each selected integration.
+4. Validate the selected features against the exact runtime release in an isolated environment before using them with real accounts or data.
+
+The legacy Hermes integration set records v0.21.7 as a tested compatibility baseline. This is historical compatibility information, not a claim that v0.21.7 is the current or newest release. The profile CLI does not install Hermes, configure a provider or channel, or start an assistant.
+
+## What is included
+
+- [`core/instructions/`](core/README.md) provides runtime-neutral starting instructions. Customize them in your private profile rather than encoding one operator's persona or routine in the shared defaults.
+- [`runtimes/hermes/`](runtimes/hermes/README.md) documents the initial Hermes adapter and its optional integrations, prompts, scripts and policies. The upstream runtime remains a separate checkout. Hermes integration compatibility was recorded against v0.21.7; this is a historical tested baseline, not a latest-version claim. Feature mappings are opt-in and manual; they do not install or activate an integration. Optional persona fragments are not part of the shared core; review and adapt them before use.
+- [`examples/domain-adapter/`](examples/domain-adapter/README.md) demonstrates an optional domain-adapter contract using synthetic data. The example describes an interface; it is not a product engine or a recommendation to enable a domain workflow.
+- `buddy` provides local `init`, `check` and `plan` commands for private profiles. These commands do not install or operate an assistant.
+
+Hermes-specific integrations may depend on upstream plugin hooks and private gateway interfaces. Read their individual guides before adapting them, and validate any runtime-dependent behavior in a separate non-production environment.
+
+## Architecture and operations
+
+The [architecture guide](docs/architecture.md) explains the public repository, private profile, runtime module and optional domain boundaries. The [development guide](docs/development.md) covers local commands and review checks. The [operations guide](docs/operations.md) gives generic deployment principles; the [staged migration plan](docs/plans/repo-to-vps-migration.md) is planning guidance only and makes no changes to any VPS.
+
+The [Hermes runtime guide](runtimes/hermes/README.md) describes its scope and limitations. This checkout does not imply that an assistant is running locally or remotely. For existing installations, inspect their private live state before making operational claims.
+
+## Documentation map
+
+- [Architecture](docs/architecture.md): boundaries and data flow.
+- [Architecture decisions](docs/adr/README.md): historical rationale and the current runtime/profile separation decision.
+- [Runtime adapters](runtimes/README.md): the adapter contract and Hermes module.
+- [Development](docs/development.md): local profile commands, documentation checks and public-source review.
+- [Operations](docs/operations.md): generic deployment and maintenance conventions.
+- [Migration plan](docs/plans/repo-to-vps-migration.md): staged preparation for an operator-managed VPS deployment.
+- [Security and privacy](SECURITY.md): private data rules and disclosure guidance.
+- [Contributing](CONTRIBUTING.md): change and validation expectations.
 - [Agent instructions](AGENTS.md): repository boundaries for coding agents.
 
-README describes the project and how to use this repository. Historical decisions belong in ADRs; deployment logs, personal profiles, transcripts, credentials and runtime databases belong outside the public repository.
+README is the project introduction and usage guide. Design rationale belongs in ADRs; profiles, credentials, transcripts, runtime state and live operational evidence belong outside the public repository.
 
 ## License
 
-The code and documentation in this repository are licensed under the [MIT License](LICENSE).
-
-Hermes Agent and separately maintained domain engines are governed by their own licenses.
+The code and documentation in this repository are licensed under the [MIT License](LICENSE). Hermes Agent and any separately maintained runtime or domain engines are governed by their own licenses.

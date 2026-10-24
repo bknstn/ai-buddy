@@ -1,12 +1,12 @@
 # Security and privacy
 
-This is public integration source. It must not contain passwords, API keys, OAuth clients/tokens, bot tokens, private keys, personal profiles, real conversation samples, health records, calendar/mail data, runtime databases or deployment logs.
+This is a public assistant starter. It must not contain passwords, API keys, OAuth clients or tokens, bot tokens, private keys, private profile configuration, personal instructions, real conversation samples, sensitive personal records, calendar or mail data, runtime databases, or deployment logs. Even a path in `runtime.home` or a profile's name and timezone can disclose private information.
 
 ## Keep deployment inputs private
 
-- Store credentials and real owner/chat/job identifiers in the private runtime environment, outside source control.
+- Store credentials and real owner, account, chat or job identifiers in the runtime's supported private configuration, outside source control.
 - Use placeholders in documentation and synthetic data in tests. Environment variable names such as `OPENAI_API_KEY` are references, not values.
-- Keep runtime homes, configuration, logs, state, archives and database exports outside this checkout. `.gitignore` is a guardrail; it does not untrack a previously committed file or clean history.
+- Keep profiles, custom instructions, runtime homes, credentials, logs, state, archives and database exports outside this checkout. The CLI rejects an instance directory inside the repository, but manually created private files still need care. `.gitignore` is a guardrail; it does not untrack a previously committed file or clean history.
 - Inspect staged changes, commit messages and Git author details before publishing. Use a GitHub noreply author address when a personal email should not be public.
 - Run the [file and history scans](docs/development.md) and manually review personal information. Automated secret detection cannot prove that prose is anonymous.
 

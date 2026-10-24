@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "operation": "lookup",
+  "workspace": "/path/to/synthetic/workspace",
+  "input": {
+    "query": "sample item"
+  }
+}

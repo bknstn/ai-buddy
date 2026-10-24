@@ -10,7 +10,7 @@ The upstream main branch may contain untested changes, while integration plugins
 
 ## Decision
 
-Follow tested published stable tags for Buddy’s upstream runtime. Validate the exact release commit and integrations before upgrading. The policy was selected on 2026-10-12 and applied with v0.21.7 on 2026-10-13.
+For the original Hermes instance, follow tested published stable tags for the upstream runtime. Validate the exact release commit and selected integrations before upgrading. The policy was selected on 2026-10-12 and applied with v0.21.7 on 2026-10-13.
 
 ## Consequences
 

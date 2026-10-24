@@ -1,4 +1,4 @@
-# ADR 0004: Isolate Buddy runtime and operational scope
+# ADR 0004: Isolate runtime instances and operational scope
 
 Date: 2026-09-26
 
@@ -10,8 +10,8 @@ Profile multiplexing coupled environments, authorization state and upgrades for 
 
 ## Decision
 
-Give Buddy its own real home directory, runtime checkout, interpreter, dependencies, service, configuration and OAuth session. Scope its repository context and every operational command to Buddy.
+Give each runtime instance its own private home, runtime checkout, interpreter, dependencies, service, configuration and authorization state. Scope repository context and every operational command to the selected instance.
 
 ## Consequences
 
-Buddy's repository and instructions describe only its own runtime and responsibilities. Legacy aliases refer only to Buddy. A dedicated home and service provide operational separation; sharing a Linux account does not provide a filesystem security boundary.
+An instance's repository context and instructions should describe only its runtime and responsibilities. A dedicated home and service provide operational separation; sharing a Linux account does not provide a filesystem security boundary.

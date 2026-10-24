@@ -19,6 +19,15 @@ service-account*.json
 *.pfx
 config.local.*
 
+# Private assistant profiles should live outside this checkout.
+/.ai-buddy-profile/
+/.ai-buddy/
+/profiles/
+/instances/
+/assistant-profile/
+/private-profile/
+/config.toml
+
 # Private runtime state and exports
 .hermes*/
 plugin-data/

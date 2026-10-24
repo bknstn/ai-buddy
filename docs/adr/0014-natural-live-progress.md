@@ -14,4 +14,4 @@ Enable completed task-specific commentary and register buddy_progress to record 
 
 ## Consequences
 
-Only the authorized owner’s active main-DM task qualifies. Pause for clarification/approval; stop on cancellation, drain, restart or completion. No periodic model call or persisted task content is added. Private gateway seams require in-process isolation and native validation.
+Only an authorized user's active direct-message task qualifies. Pause for clarification or approval; stop on cancellation, drain, restart or completion. No periodic model call or persisted task content is added. Private gateway seams require in-process isolation and native validation. This behavior is specific to the optional Hermes integration.

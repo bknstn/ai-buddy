@@ -1,46 +1,53 @@
 # Architecture
 
-Buddy combines a conversational control plane with small, independently testable integrations. It keeps domain logic in separate repositories and private state in the runtime home.
+AI Buddy separates shared, reusable source from an assistant's private profile and the runtime that executes it. The public repository is a customization base; it is not itself a running assistant.
 
-## Responsibilities
+## Components
 
-| Layer | Owns | Contract |
+| Component | Responsibility | Location |
 | --- | --- | --- |
-| Telegram | User input and message delivery | Hermes platform adapter |
-| Hermes Agent | Sessions, tools, memory, provider routing and scheduling | Upstream runtime and plugin interfaces |
-| Buddy integrations | Session/progress policies, review collection, continuity and delivery gates | Plugin hooks, scripts and prompt fragments |
-| Domain engines | Product discovery, recovery/training and learning workflows | Stable CLI commands with JSON or Markdown output |
-| External services | Authorized calendar, tasks, mail, transcription and search | Separately configured credentials and scopes |
-| Private runtime storage | Conversations, context ledger, queues, control state and secrets | Local files/databases excluded from source control |
+| Shared core | Generic assistant and communication guidance | `core/` in this repository |
+| Private profile | Instance name, timezone, runtime selection, enabled features and private instructions | Operator-selected location outside the clone |
+| Runtime module | Translate the starter's capabilities into one runtime's configuration, hooks and integrations | `runtimes/<runtime-id>/` |
+| Upstream runtime | Conversation handling, tools, provider/channel adapters, scheduling and runtime state | Separately installed and maintained |
+| Domain adapter | Optional interface from assistant actions to a separately owned domain engine | `examples/` as a synthetic contract example |
+| Domain engine | Business logic, data, tests and artifacts for a chosen domain | Its own repository or service |
 
-The named domain workspaces are Idea Maze, Health OS and Learning OS. Their source, data and deployment are separate concerns. This repository supplies integration contracts and design context, not those engines' implementations.
+Hermes is the initial documented runtime module. Its module owns Hermes-specific plugins, scripts, prompts and policy. The Hermes Agent checkout is separate from this repository. The recorded integration compatibility baseline is v0.21.7; that version is not a claim about the latest upstream release. See the [runtime adapter guide](../runtimes/README.md) and [Hermes module guide](../runtimes/hermes/README.md) for the current contracts and limits.
 
-## Request flow
+The profile schema currently contains `schema_version`, an assistant name and timezone, a runtime ID and home, and an explicit feature list. The default values are examples, not a prescribed persona, provider, channel, daily schedule or domain track. Private custom instructions belong in the profile's `instructions/` directory and can be tailored without changing public defaults.
 
-Hermes authorizes an incoming Telegram request before opening the relevant session and executing tools. The session-policy plugin can create a new daily conversation after an eligible greeting, provided active work is protected. The assistant calls domain CLIs with an explicit working directory and interprets their actual output.
+## Request and configuration flow
 
-During substantial user-requested work, completed assistant commentary explains meaningful progress. The live-progress plugin tracks the current declared stage and can emit a bounded waiting notice. It does not expose tool arguments or hidden reasoning, and it does not infer progress from elapsed time.
+```mermaid
+flowchart LR
+    User[User] <--> Channel[Runtime-selected channel]
+    Channel <--> Runtime[Selected runtime]
+    Runtime --> Core[Shared core instructions]
+    Runtime --> Profile[Private profile and instructions]
+    Runtime --> Adapter[Optional domain adapter]
+    Adapter --> Engine[Separately maintained domain engine]
+    Runtime --> Services[Operator-authorized external services]
+    Runtime --> State[Private runtime state]
+```
 
-The native Telegram adapter receives the complete final reply and handles splitting. Concision is a communication preference, not a hard character limit.
+The exact channel, provider, execution location and storage are choices made when a runtime is installed and configured. A profile plan can describe selected files and capabilities, but it does not prove that the runtime loads those files, has access to services, or is ready to serve a user.
 
-## Background review flow
+## Portability boundary
 
-Heartbeat separates preparation from delivery:
+Core instructions and the profile shape are runtime-neutral. Runtime modules own the mapping into a concrete execution environment. A module may rely on runtime-specific hooks or interfaces; those dependencies must be documented and checked against the selected runtime version.
 
-1. A bounded collector reads explicitly authorized sources and a small fragment of the configured main conversation.
-2. Private daily and weekly reviews assess usefulness and produce proposals.
-3. A deterministic gate validates freshness, quiet hours, deduplication, snoozes and the notification budget.
-4. Delivery emits only the useful message, or remains silent.
+Hermes is the first module, not evidence that every behavior is portable. Existing Buddy integrations were designed around Hermes and some use private gateway interfaces. Other runtimes need their own modules and compatibility work. Until an alternate module exists and is validated, do not describe the legacy integrations as runtime-independent.
 
-The context ledger stores source-backed decisions, commitments, waiting items, preferences and feedback. Provenance checks verify that a quotation exists; they do not prove the model interpreted it correctly. Saved context does not authorize external actions. New human input or a changed ledger invalidates stale prepared advice.
+The starter CLI validates profile structure and renders a local plan. It does not install integrations, write into an upstream runtime home, alter services, configure credentials, contact external systems, or start a conversational assistant.
 
-## Boundaries and limitations
+## Security and authorization boundaries
 
-- Persona instructions guide behavior. Code enforces delivery limits and scope checks.
-- A separate assistant instance has its own runtime, configuration, provider session and state. Sharing a Linux user provides operational separation, not a filesystem security boundary.
-- Session and progress plugins wrap private Hermes gateway interfaces. Validate compatibility before upgrading; no upstream source patch is required.
-- Background reviews consume model calls even when delivery stays silent. They cannot monitor a stopped gateway independently.
-- Source failures mean unknown. Neither a successful collector nor a saved delivery reservation proves that a message reached the user.
-- Credentials, personal profiles and raw domain data are deployment inputs. Public examples use placeholders or synthetic fixtures.
+- Keep configuration and custom instructions in a private profile outside the repository. Use OS permissions appropriate to the host; the CLI creates the config file with private permissions.
+- Treat external service access, sending messages, scheduled work and domain commands as separate capabilities. Listing a feature in a profile does not grant authorization or create working credentials.
+- Keep credentials in the runtime's supported secret mechanism. Do not put them in the profile config, prompts, logs, examples or version control.
+- Prefer read-only checks first, synthetic data for validation and explicit review before enabling writes or unattended activity.
+- Domain repositories own their data contracts and implementation. The assistant should pass explicit workspace/context and respect the engine's actual output.
+- Instructions influence model behavior; runtime code and external service permissions enforce access. Do not rely on prose alone as a security boundary.
 
-The reasoning and historical adoption dates are recorded in [ADRs](adr/README.md).
+See [operations](operations.md) for generic rollout practices and the [ADRs](adr/README.md) for the design history.

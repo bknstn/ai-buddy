@@ -1,11 +1,11 @@
 # Contributing
 
-Start with the [README](README.md), [architecture](docs/architecture.md) and the guide for the integration you want to change.
+Start with the [README](README.md), [architecture](docs/architecture.md), [agent instructions](AGENTS.md) and [security guidance](SECURITY.md). Keep shared source generic and safe for public cloning.
 
-Keep domain business logic in its owning repository. Keep Buddy changes small and explicit about runtime compatibility, authorization and private-state handling. Use synthetic fixtures; never attach real transcripts, health records, configuration or credentials to a change.
+When changing shared instructions, avoid assuming one operator's identity, timezone, channel, provider or routine. Put private preferences in the profile instead. When adding a runtime module, document its supported versions, capabilities, setup, validation and limits. When documenting a domain adapter, keep the engine's implementation and data in its own project and use synthetic fixtures here.
 
-Run the relevant [validation](docs/development.md). Explain the user-visible behavior, checks performed and any runtime-dependent checks that remain. Changes to a private gateway interface need native compatibility validation before deployment.
+Use the [development guide](docs/development.md) to validate local profile behavior and review public-source changes. Describe what you checked and which runtime-dependent behavior remains unverified. A successful profile check or plan does not establish runtime compatibility or authorization.
 
-Record a new architectural decision as the next numbered file in [docs/adr](docs/adr/README.md), with its adoption date, context, decision and consequences. Keep deployment diaries and personal installation evidence outside the public repository.
+Record significant architectural changes as the next numbered file in [docs/adr](docs/adr/README.md), using the actual adoption date, context, decision and consequences. Mark decisions superseded by a later ADR. Keep installation diaries, personal profiles, live operational evidence and deployment logs private.
 
-Source review does not authorize production deployment, new scheduled jobs, external messages or account changes. Follow the [operations workflow](docs/operations.md) for an authorized rollout.
+Source review does not authorize production deployment, new schedules, external messages or account changes. For deployment, follow the published-source and rollback boundaries in the [operations guide](docs/operations.md). Merge and push reviewed production integration and domain source to GitHub `main`, then fast-forward the server checkout to the freshly verified `origin/main` before installation.
