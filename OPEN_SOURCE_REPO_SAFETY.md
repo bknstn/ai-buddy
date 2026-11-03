@@ -59,7 +59,7 @@ The agent MUST:
 5. replace environment-specific details with safe placeholders;
 6. stop and flag anything suspicious instead of guessing that it is safe.
 
-If the user did not explicitly ask the agent to create a commit, the agent should leave the changes uncommitted.
+Follow the repository's `AGENTS.md` for commit and push authorization. Its default publication rule applies only after this safety review passes; do not include unrelated pre-existing changes.
 
 ---
 

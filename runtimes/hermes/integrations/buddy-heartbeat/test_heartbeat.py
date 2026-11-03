@@ -168,8 +168,8 @@ class DeliveryTests(unittest.TestCase):
             home = Path(directory) / "home"
             state = Path(directory) / "state"
             domain_env = {
-                "HEALTH_OS_REPO": directory,
-                "HEALTH_OS_WORKSPACE": directory,
+                "EXAMPLE_DOMAIN_REPO": directory,
+                "EXAMPLE_DOMAIN_WORKSPACE": directory,
                 "LEARNING_OS_REPO": directory,
                 "IDEA_MAZE_REPO": directory,
                 "HERMES_RUNTIME_CHECKOUT": "",

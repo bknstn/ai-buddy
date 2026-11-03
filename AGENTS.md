@@ -40,6 +40,8 @@ Keep service credentials, profiles, sessions, databases, logs, queues, backups a
 
 Review and validate source changes before publishing. For production integration and domain deployment, merge and push reviewed changes to GitHub `main` first. Update the server only by fast-forwarding its `main` checkout to a freshly fetched `origin/main`, then verify the HEADs match. Do not deploy unpublished feature-branch commits or use a transfer bundle as a substitute for publication. Confirm the live host and target instance, preserve recoverable state, verify after startup, and clean up task-created staging and backups after successful checks.
 
+For repository tasks, commit and push reviewed, public-safe changes to `origin/main` as part of completing the task unless the user asks otherwise. Do not ask for separate permission to commit or push. Stage only changes belonging to the task; preserve unrelated pre-existing work. If branch protection or a review requirement blocks a direct push, prepare the required review path and report the blocker.
+
 For the existing Hermes integration set, v0.21.7 is the recorded compatibility baseline, not a latest-version claim. Follow the Hermes module's stable-release guidance and test compatibility before upgrades. Do not substitute upstream `main` for a reviewed stable release by default.
 
 ## Documentation and public source
