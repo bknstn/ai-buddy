@@ -12,8 +12,11 @@ useful commentary. After 80 seconds without a successfully delivered interim
 message, a lightweight watcher may send a truthful waiting update using that
 declared topic. It never turns raw tool arguments, source text or hidden
 reasoning into status. Before a topic exists, it reports only that preparing an
-answer is taking longer. Further notices use the same interval and claim no new
-progress or ETA.
+answer is taking longer. At most one automatic waiting notice is attempted per
+human request, regardless of later stage changes or delivered commentary. A failed
+or ambiguous send consumes that budget too; concurrent ticks cannot retry it.
+Useful task-specific commentary remains enabled and is not limited by this budget.
+A new human request starts a fresh budget.
 
 The built-in waiting notices are currently in Russian. Localize those message
 templates before enabling the plugin for a different conversation language.

@@ -95,6 +95,70 @@ class Tests(unittest.IsolatedAsyncioTestCase):
             self.clock[0] = 150
             self.assertTrue(await self.policy.tick(turn))
 
+    async def test_long_silence_has_only_one_waiting_notice(self):
+        with self.active() as turn:
+            for instant in [80, 160, 240, 1000, 10000]:
+                self.clock[0] = instant
+                await self.policy.tick(turn)
+            self.assertEqual(len(self.gateway.adapter.sent), 1)
+            self.assertTrue(turn.waiting_attempted)
+            # No periodic watcher remains after its one-shot budget is spent.
+            await asyncio.wait_for(self.policy.watch(turn), timeout=0.2)
+
+    async def test_stage_changes_and_commentary_do_not_rearm_waiting(self):
+        with self.active() as turn:
+            self.clock[0] = 80
+            self.assertTrue(await self.policy.tick(turn))
+            self.assertTrue(turn.declare("Check source notes"))
+            self.clock[0] = 100
+            await self.gateway.adapter.send("1", "I found the cause", metadata={"_interim_send": True})
+            self.clock[0] = 1000
+            self.assertFalse(await self.policy.tick(turn))
+            self.assertEqual(len(self.gateway.adapter.sent), 2)
+            self.assertEqual(self.gateway.adapter.sent[-1][1], "I found the cause")
+
+    async def test_failed_send_consumes_budget_even_after_long_silence(self):
+        with self.active() as turn:
+            self.gateway.adapter.ok = False
+            self.clock[0] = 80
+            self.assertFalse(await self.policy.tick(turn))
+            self.gateway.adapter.ok = True
+            self.clock[0] = 1000
+            self.assertFalse(await self.policy.tick(turn))
+            self.assertEqual(len(self.gateway.adapter.sent), 1)
+
+    async def test_ambiguous_timeout_is_never_retried(self):
+        from unittest.mock import patch
+        async def delivered_then_timeout(awaitable, timeout):
+            await awaitable
+            raise asyncio.TimeoutError
+        with self.active() as turn:
+            self.clock[0] = 80
+            with patch.object(m.asyncio, "wait_for", delivered_then_timeout):
+                with self.assertLogs(m.log, level="WARNING"):
+                    self.assertFalse(await self.policy.tick(turn))
+            self.clock[0] = 1000
+            self.assertFalse(await self.policy.tick(turn))
+            self.assertEqual(len(self.gateway.adapter.sent), 1)
+
+    async def test_concurrent_ticks_share_one_reserved_budget(self):
+        with self.active() as turn:
+            self.gateway.adapter.block = asyncio.Event()
+            self.clock[0] = 80
+            first = asyncio.create_task(self.policy.tick(turn))
+            await asyncio.sleep(0)
+            self.assertFalse(await self.policy.tick(turn))
+            self.gateway.adapter.block.set()
+            self.assertTrue(await first)
+            self.assertEqual(len(self.gateway.adapter.sent), 1)
+
+    async def test_next_human_request_gets_fresh_budget(self):
+        for instant in [80, 160]:
+            with self.active() as turn:
+                self.clock[0] = instant
+                self.assertTrue(await self.policy.tick(turn))
+        self.assertEqual(len(self.gateway.adapter.sent), 2)
+
     async def test_no_status_before_interval_and_no_topic_invention(self):
         with self.active() as turn:
             self.clock[0] = 79

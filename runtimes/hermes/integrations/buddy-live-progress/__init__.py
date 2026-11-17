@@ -73,6 +73,7 @@ class Turn:
     parent: object = None
     context_token: object = None
     interim_inflight: int = 0
+    waiting_attempted: bool = False
     changed: object = field(default_factory=asyncio.Event)
     lock: object = field(default_factory=threading.RLock)
 
@@ -179,7 +180,7 @@ class LiveProgress:
         self.adapters[adapter] = (original_ref, weakref.ref(send))
 
     async def tick(self, turn):
-        if not turn.current():
+        if turn.waiting_attempted or not turn.current():
             return False
         try:
             if self.waiting(turn.key):
@@ -192,6 +193,16 @@ class LiveProgress:
             adapter = turn.gateway._delivery_adapter_for(turn.source)
             if adapter is None:
                 return False
+            with turn.lock:
+                # A notice is a one-shot fallback, not evidence of progress.
+                # Reserve before awaiting transport: parallel ticks and ambiguous
+                # failures must not create duplicate messages. Commentary or a
+                # changed stage never replenishes this per-human-turn budget.
+                if turn.waiting_attempted or not turn.current() or turn.interim_inflight:
+                    return False
+                if self.clock() - turn.last_visible < self.interval:
+                    return False
+                turn.waiting_attempted = True
             self.observe(adapter)
             result = await asyncio.wait_for(adapter.send(
                 turn.source.chat_id, turn.waiting_text(), metadata={
@@ -204,14 +215,14 @@ class LiveProgress:
             raise
         except Exception:
             # Never let a progress failure interrupt work, expose payloads, or retry
-            # an ambiguous send immediately. Pace failures as well as successes.
+            # an ambiguous send at all. An attempted notice consumes the budget.
             log.warning("Waiting update unavailable")
         turn.received()
         return False
 
     async def watch(self, turn):
         try:
-            while turn.current():
+            while turn.current() and not turn.waiting_attempted:
                 try:
                     await asyncio.wait_for(turn.changed.wait(), timeout=1)
                     break

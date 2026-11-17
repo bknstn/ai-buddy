@@ -98,7 +98,7 @@ class Native(unittest.IsolatedAsyncioTestCase):
                 deadline = time.monotonic() + 3
                 while not adapters[0].sent and time.monotonic() < deadline:
                     time.sleep(0.01)
-                return {"final_response": "Итог проверки", "messages": [], "api_calls": 1}
+                return {"final_response": "Review complete", "messages": [], "api_calls": 1}
 
         with tempfile.TemporaryDirectory(prefix="buddy-native-progress-") as td, pytest.MonkeyPatch.context() as patch:
             patch.setattr(harness, "_make_runner", make_runner)
