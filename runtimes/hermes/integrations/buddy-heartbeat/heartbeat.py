@@ -20,7 +20,7 @@ import sys
 from datetime import datetime, timedelta
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
-from conversation_context import apply_updates, ledger_context, load_ledger, recent_dialogue, validate_updates
+from conversation_context import apply_updates, apply_verified_updates, ledger_context, load_ledger, recent_dialogue, validate_updates
 
 def configured_timezone():
     return ZoneInfo(os.environ.get("ASSISTANT_TIMEZONE", "UTC"))
@@ -220,6 +220,13 @@ def validate_proposal(value, instant):
         for field in ("key", "message", "evidence", "why_now"):
             if not isinstance(item.get(field), str) or not item[field].strip():
                 raise ValueError("Each signal needs key, message, evidence and why_now")
+        if "context_dependencies" in item:
+            dependencies = item["context_dependencies"]
+            if (not isinstance(dependencies, list) or len(dependencies) > 60
+                    or any(not isinstance(key, str) or not re.fullmatch(
+                        r"[a-z0-9][a-z0-9:_-]{0,99}", key) for key in dependencies)
+                    or len(set(dependencies)) != len(dependencies)):
+                raise ValueError("Context dependencies must be unique stable IDs")
         if len(item["key"]) > 180 or len(item["message"]) > 450:
             raise ValueError("Signal too long")
         if any(marker in item["message"] for marker in ("[SILENT]", "MEDIA:", "[CRON_FAILURE]")):
@@ -265,18 +272,28 @@ def deliver():
                 if proposal["context_revision"] != load_ledger(STATE)["revision"]:
                     return ""
             dialogue = None
+            ledger = load_ledger(STATE)
+            rejected = set()
             if proposal.get("dialogue_watermark") is not None:
                 dialogue = recent_dialogue(HOME, STATE, instant)
                 if proposal["dialogue_watermark"] != dialogue["watermark"]:
                     return ""
             if proposal.get("context_updates") and not suppressed(controls(), instant):
                 # Re-read live human evidence, rather than trusting the model's private input copy.
-                ledger, outcome = apply_updates(load_ledger(STATE), proposal,
+                ledger, outcome, rejected = apply_verified_updates(ledger, proposal,
                     dialogue or recent_dialogue(HOME, STATE, instant), instant)
                 if outcome == "stale":
                     return ""  # Conversation changed after preparation; don't send obsolete advice.
                 if outcome == "saved":
                     write(STATE / "conversation.json", ledger)
+            # Missing dependency metadata is ambiguous after any rejection.
+            # Never reserve or mirror an item that relies on rejected/unknown context.
+            known = {entry["id"] for entry in ledger["entries"]} - rejected
+            proposal = dict(proposal, items=[item for item in proposal["items"]
+                if (not rejected or "context_dependencies" in item)
+                and set(item.get("context_dependencies", [])) <= known])
+            if rejected:
+                logging.warning("Rejected %d unverified conversation updates", len(rejected))
         history = read(STATE / "history.json", {"emitted": [], "feedback": []})
         chosen = choose(proposal, history, controls(), instant)
         if not chosen:

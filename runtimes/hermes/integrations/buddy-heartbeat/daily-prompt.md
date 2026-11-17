@@ -34,6 +34,8 @@ Topic IDs are exactly `calendar`, `tasks`, `projects`, `assistant` and `other`:
 
 Create a stable `key` describing the signal or state transition. Avoid today's date unless it is necessary to distinguish a genuinely new transition. Do not repeat an ignored or unchanged item with different wording. Respect pause and snooze controls. The delivery gate enforces no more than one emitted message per configured local day, up to two items per message, and at most one `assistant` item per seven days; the review should still return no candidate when nothing is useful.
 
+Each item must declare `context_dependencies`: the stable IDs of every ledger entry or proposed conversation update it relies on. Use `[]` only for a signal supported independently by another supplied authorized source (for example, Calendar), not to bypass rejected consent. Do not use ledger-based advice without its IDs. An unverified update is not saved; dependent items and items without dependency metadata are suppressed if any update fails provenance checks. Unrelated, explicitly independent items may still pass the normal delivery gates.
+
 ## Write any user-facing candidate
 
 Write `message` in the language requested by the user or configured in the private profile. If neither specifies a language, follow the current conversation. Do not assume a name, identity, schedule, channel, domain or continuing goal. Start with the relevant fact and a practical, optional next step. Be concise but include any material limitation. Keep internal runtime, script, job, key, JSON and delivery details in `evidence` or `why_now` only when those details are necessary for review; never place secrets or private paths in any field.
@@ -54,7 +56,8 @@ Return valid JSON only, with no Markdown fences, explanation, tool call or trans
       "key": "<stable key>",
       "message": "<useful, optional note>",
       "evidence": "<specific verified input fact>",
-      "why_now": "<why it may help now>"
+      "why_now": "<why it may help now>",
+      "context_dependencies": []
     }
   ]
 }

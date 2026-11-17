@@ -151,6 +151,33 @@ def validate_updates(proposal):
     return updates
 
 
+class ProvenanceError(ValueError):
+    """An otherwise well-formed update lacks verifiable human consent."""
+
+
+def apply_verified_updates(ledger, proposal, dialogue, instant):
+    """Isolate provenance failures; preserve strict atomic writes for accepted updates.
+
+    Schema errors, stale snapshots and ledger capacity errors still fail closed.
+    The interactive remember command continues to use strict apply_updates.
+    """
+    updates = validate_updates(proposal)
+    if (updates and proposal["context_revision"] != ledger["revision"]) or (
+            proposal.get("dialogue_watermark") is not None
+            and proposal["dialogue_watermark"] != dialogue.get("watermark")):
+        return ledger, "stale", set()
+    accepted, rejected = [], set()
+    for update in updates:
+        try:
+            apply_updates(ledger, dict(proposal, context_updates=[update]), dialogue, instant)
+        except ProvenanceError:
+            rejected.add(update["id"])
+        else:
+            accepted.append(update)
+    result, outcome = apply_updates(ledger, dict(proposal, context_updates=accepted), dialogue, instant)
+    return result, outcome, rejected
+
+
 def apply_updates(ledger, proposal, dialogue, instant):
     """Validate provenance and apply one atomic batch. A stale snapshot changes nothing."""
     updates = validate_updates(proposal)
@@ -167,7 +194,7 @@ def apply_updates(ledger, proposal, dialogue, instant):
     for update in updates:
         row = human.get(update["source_id"])
         if not row or update["quote"].strip() not in row["text"]:
-            raise ValueError("Conversation update is not backed by visible human input")
+            raise ProvenanceError("Conversation update is not backed by visible human input")
         if update.get("proposal_source_id") is not None:
             preceding = [message for message in dialogue.get("messages", [])
                          if message["source_id"] < row["source_id"]]
@@ -176,7 +203,7 @@ def apply_updates(ledger, proposal, dialogue, instant):
                     or previous["source_id"] != update["proposal_source_id"]
                     or not update.get("proposal_quote", "").strip()
                     or update["proposal_quote"].strip() not in previous["text"]):
-                raise ValueError("Confirmation must reference the immediately preceding proposal")
+                raise ProvenanceError("Confirmation must reference the immediately preceding proposal")
         old = entries.get(update["id"])
         if old and old["source_id"] >= update["source_id"]:
             continue

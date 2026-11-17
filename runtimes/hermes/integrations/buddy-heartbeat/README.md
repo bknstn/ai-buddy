@@ -18,6 +18,8 @@ The continuity collector reads only the configured Telegram direct-message conve
 
 `conversation_context.py` stores source-backed decisions, commitments, waiting items, preferences and feedback in a private ledger. Each entry has a stable ID, status, source quotation and optional agreed next step/review date. A quotation check proves that text exists, not that the model interpreted it correctly. Updates require visible human evidence; silence, a proposal from the assistant or a stored commitment is not consent or execution permission.
 
+Background delivery isolates only provenance failures: unsupported updates are omitted, and verified updates are saved together in one revision. Each signal should declare `context_dependencies` listing all ledger/update IDs it relies on, or `[]` for independently sourced evidence. Signals depending on a rejected or unknown ID are suppressed; when any update is rejected, legacy signals without dependency metadata are also suppressed. Schema errors, stale snapshots and capacity failures still fail closed. The interactive `remember` command remains strict and atomic. Dependency declarations do not establish semantic correctness or grant permission.
+
 The ledger is capped at 60 entries and rejects an update batch that would exceed the limit. Active entries are not silently evicted. Recently closed entries remain visible for continuity; old terminal entries can be pruned on a later write. Newer human evidence or a changed ledger revision invalidates stale preparation. No ledger entry creates a task, event, schedule or permission to act.
 
 ## Sources and proposal topics
