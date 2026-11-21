@@ -39,7 +39,9 @@ The heartbeat's delivery gate allows at most one note per configured local day, 
 
 Add `buddy-software-engineer` to the existing `features.enabled` list in the private profile. Use `python3 -m buddy plan` to locate the skill and copy `SKILL.md` to `$HERMES_HOME/skills/buddy-software-engineer/SKILL.md` for the intended Hermes profile. Give the profile terminal and delegation tools and access to the intended development repositories.
 
-This skill requires Hermes with pluggable delegation and the official [advanced-delegation plugin](https://hermes-agent.nousresearch.com/marketplace/advanced-delegation), whose minimum is Hermes v0.22.5. The legacy v0.21.7 baseline predates this backend. Use a reviewed stable release and validate the existing integrations before upgrading an instance. Install the plugin from the Hermes catalog with `hermes plugins install advanced-delegation` and confirm it is enabled in the intended profile.
+### Named delegation route
+
+For a route the skill can select explicitly, use Hermes with pluggable delegation and the official [advanced-delegation plugin](https://hermes-agent.nousresearch.com/marketplace/advanced-delegation), which requires v0.22.5 or later. Validate existing integrations against the selected stable version before upgrading. Run `hermes plugins install advanced-delegation` and `hermes plugins enable advanced-delegation` for the intended profile.
 
 Merge the following into that profile's private `config.yaml`. Keep the profile's main model settings and any other `model_map` options. Selecting `model_map` changes the delegation backend for new sessions in this profile, so review any existing delegation routes before switching. The skill always names its own route and needs no change to the default route.
 
@@ -57,7 +59,23 @@ delegation:
           fallback_providers: []
 ```
 
-Verify the selected provider account offers [GPT-6 Luna with `xhigh`](https://developers.openai.com/api/docs/models/gpt-6-luna). Check the effective fallback settings and disable fallbacks for this route. Confirm the route with `hermes delegation config --show`, start a new session, and invoke `/buddy-software-engineer` or name the skill in the request. For the first test, use a small change in a disposable local repository. Verify that the main agent plans before dispatch, the child result records `buddy-luna-coder` with `gpt-6-luna` and `xhigh`, and the main agent reviews the actual diff and reruns the checks before reporting completion.
+Confirm the route with `hermes delegation config --show` and start a new session. Check the child result for the route label, model, and reasoning effort.
+
+### Default delegation route
+
+Hermes v0.21.7 supports a model and reasoning effort for the profile's default delegation route. Use this option when all default subagents in that profile should run on Luna. Merge these settings into the existing `delegation` block in the private `config.yaml` and keep the parent model settings.
+
+```yaml
+delegation:
+  provider: openai-codex
+  model: gpt-6-luna
+  reasoning_effort: xhigh
+  fallback_providers: []
+```
+
+Start a fresh session, verify the provider and effort in the effective configuration, and check the worker's returned `model` field. The default backend on v0.21.7 does not include the reasoning effort in its results.
+
+With either route, verify the provider account offers [GPT-6 Luna with `xhigh`](https://developers.openai.com/api/docs/models/gpt-6-luna). Invoke `/buddy-software-engineer` or name the skill in the request. For the first test, use a small change in a disposable local repository. Verify that the main agent plans before dispatch, reviews the actual diff, and reruns the checks before reporting completion.
 
 ## Local validation
 

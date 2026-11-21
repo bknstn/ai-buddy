@@ -13,7 +13,10 @@ Identify the authorized repository and base revision. Read its instructions, ins
 
 ## Delegate implementation
 
-Use Hermes `delegate_task` with the `model_map` backend and the `buddy-luna-coder` option for every coding task. Confirm the active tool schema exposes that option and the configured route targets `gpt-6-luna` with `xhigh`. Stop and report a routing blocker if either check fails. Use `tasks` even for a single worker and put `option` inside each task object.
+Use Hermes `delegate_task` for coding. Confirm the active route before dispatch by reading only the relevant delegation settings for this profile. Stop and report a routing blocker if you cannot verify `gpt-6-luna` with `xhigh` and fallbacks disabled.
+
+- With `model_map`, confirm the tool schema exposes `buddy-luna-coder` and verify that option's settings. Use `tasks` even for a single worker and put `option: buddy-luna-coder` inside each task object.
+- With the default backend, require an explicit `delegation.provider`, `delegation.model: gpt-6-luna`, `delegation.reasoning_effort: xhigh`, and `delegation.fallback_providers: []`. Dispatch without `option`. This pin applies to the profile's default delegation route.
 
 Give each worker one bounded part of the plan with a goal, acceptance criteria, relevant repo instructions, base revision, absolute workspace path, files or interfaces it owns, and checks to run. Require the changes, actual check results, and a branch, commit, or diff to review. Keep push, PR publication, merge, and deployment with the lead under the user's authorization and repository rules.
 
@@ -21,6 +24,8 @@ Assign a dedicated branch and worktree or checkout for implementation. Have each
 
 ## Review and deliver
 
-Verify each result's `route` reports `backend: model_map`, `label: buddy-luna-coder`, `model: gpt-6-luna`, and `reasoning_effort: xhigh`. Treat a missing or mismatched route, or an activated fallback, as a blocker to accepting that result. Inspect the actual diff against the plan and acceptance criteria. Check for regressions and conflicts across layers, run the relevant checks yourself on the integrated changes, and send findings back to Luna for fixes. Review the updated diff and rerun affected checks before delivery.
+For `model_map`, require each result's `route` to report `backend: model_map`, `label: buddy-luna-coder`, `model: gpt-6-luna`, and `reasoning_effort: xhigh` without an activated fallback. On Hermes versions with a default-backend result that only reports the worker model, require `model: gpt-6-luna` and verify effort from the explicit profile pin. Treat missing or mismatched evidence as a blocker to accepting the result.
+
+Inspect the actual diff against the plan and acceptance criteria. Check for regressions and conflicts across layers, run the relevant checks yourself on the integrated changes, and send findings back to Luna for fixes. Review the updated diff and rerun affected checks before delivery.
 
 Leave a reviewed change in the requested form. Use the configured GitHub identity for authorized GitHub actions. Report the outcome, which checks passed, and any remaining blockers. Include the branch, commit, or pull request when available.
