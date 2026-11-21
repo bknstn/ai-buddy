@@ -13,7 +13,7 @@ Read `AGENTS.md`, `README.md`, `docs/architecture.md`, `docs/operations.md` and 
 
 ## Operational boundary
 
-Do not assume a runtime process or service exists on the current machine. For work on a running instance, use only operator-provided access and inspect that instance's live configuration, revision and state before making claims. Public documents contain no canonical server paths, service names or SSH aliases because these vary by installation.
+Do not assume a runtime process or service exists on the current machine. For work on a running instance, use only operator-provided access and inspect that instance's live configuration, revision and state before making claims. Public documents contain no canonical server paths, service names or SSH aliases because these vary by installation. See `docs/operations.md` for the SSH wrapper and how to supply a local alias.
 
 Repository work does not itself authorize host access, service changes, data migration, scheduled jobs or external communications. Do not connect to or change a host unless the user requests that operational work. Keep raw operational output and personal data private.
 

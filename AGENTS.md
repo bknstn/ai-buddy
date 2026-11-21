@@ -36,6 +36,10 @@ Do not assume a runtime is installed in this checkout. For host operations, use 
 
 Keep service credentials, profiles, sessions, databases, logs, queues, backups and deployment evidence outside public source. Use synthetic fixtures and placeholder paths. Never print secrets to diagnose them.
 
+## VPS access
+
+For operator-authorized SSH work, use `sh scripts/vps-ssh.sh` with `ASSISTANT_VPS_SSH_HOST` set to the intended host alias. The SSH client resolves connection details from local configuration. Read `docs/operations.md` before host changes and verify the target instance before any mutation.
+
 ## Publishing and deployment
 
 Make changes, run the relevant checks, and commit the reviewed changes. If the change requires a release, update the version and changelog, validate those updates, and commit them before pushing. After pushing, deploy to the VPS and verify the deployment when the task includes that work.

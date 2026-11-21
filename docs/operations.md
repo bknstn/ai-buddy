@@ -4,6 +4,19 @@ This repository supplies reusable source and local profile tooling. It does not 
 
 For a new deployment, use the [staged repository-to-server plan](plans/repo-to-vps-migration.md) as a planning checklist. For an existing installation, inspect its private live state before making operational claims; this repository is not a substitute for the runtime's actual configuration, service state or logs.
 
+## SSH access
+
+Configure the connection in your local SSH client, then supply your host alias when running the wrapper from this repository. The following commands use `assistant-vps` as an example alias.
+
+```sh
+ASSISTANT_VPS_SSH_HOST=assistant-vps sh scripts/vps-ssh.sh
+ssh assistant-vps
+```
+
+Keep connection details and private keys in your local SSH setup. The wrapper requires `ASSISTANT_VPS_SSH_HOST` and forwards any arguments as a remote command. For example, `ASSISTANT_VPS_SSH_HOST=assistant-vps sh scripts/vps-ssh.sh 'id -un'` prints the remote account name.
+
+On a shared host, keep each assistant's source tree, runtime home, bot, and service separate. Use dedicated operating-system accounts for isolation where supported. Verify the intended instance before making changes and keep each assistant's credentials and private data separate.
+
 ## Keep the profile, runtime and repository separate
 
 - Clone or fork this repository as shared source. Keep private profiles outside the clone.
