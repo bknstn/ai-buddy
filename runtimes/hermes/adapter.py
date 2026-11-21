@@ -22,6 +22,7 @@ FEATURES = {
     "buddy-openai-web": frozenset({"plugin_files"}),
     "buddy-persona": frozenset({"instruction_files"}),
     "buddy-session-policy": frozenset({"plugin_files"}),
+    "buddy-software-engineer": frozenset({"skill_files"}),
     "google-calendar": frozenset({"skill_files"}),
 }
 
@@ -107,7 +108,7 @@ class HermesAdapter:
                             kind="persona_instruction",
                             note="Optional guidance; review and compose manually. No existing SOUL.md or prompt is overwritten.",
                         ))
-            elif feature == "google-calendar":
+            elif "skill_files" in self.features[feature]:
                 source = integration_root / feature / "SKILL.md"
                 if not source.is_file():
                     raise BuddyError(f"Required feature asset is missing: {source.relative_to(repository_root)}")

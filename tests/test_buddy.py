@@ -199,12 +199,19 @@ class BuddyProfileTests(unittest.TestCase):
 
         (self.profile_dir / "config.toml").write_text(
             CONFIG.replace('id = "fake"', 'id = "hermes"')
-            .format(home=self.runtime_home, enabled='["buddy-live-progress", "google-calendar"]'),
+            .format(
+                home=self.runtime_home,
+                enabled='["buddy-live-progress", "google-calendar", "buddy-software-engineer"]',
+            ),
             encoding="utf-8",
         )
         plan = make_plan(self.profile_dir, adapter=get_adapter())
         self.assertTrue(plan["mappings"])
         self.assertEqual(plan["runtime_environment"]["ASSISTANT_TIMEZONE"], "UTC")
+        self.assertIn(
+            str(self.runtime_home / "skills" / "buddy-software-engineer" / "SKILL.md"),
+            [item["destination"] for item in plan["mappings"] if item["kind"] == "skill"],
+        )
         for item in plan["mappings"]:
             if item["source"].startswith("<profile>"):
                 continue
