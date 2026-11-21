@@ -38,6 +38,10 @@ Keep service credentials, profiles, sessions, databases, logs, queues, backups a
 
 ## Publishing and deployment
 
+Make changes, run the relevant checks, and commit the reviewed changes. If the change requires a release, update the version and changelog, validate those updates, and commit them before pushing. After pushing, deploy to the VPS and verify the deployment when the task includes that work.
+
+Before reporting completion, use `git status --porcelain` to verify that the local working tree is clean and, for VPS deployments, that the server working tree is clean too. Preserve and report any unrelated changes that prevent either check from passing.
+
 Review and validate source changes before publishing. For production integration and domain deployment, merge and push reviewed changes to GitHub `main` first. Update the server only by fast-forwarding its `main` checkout to a freshly fetched `origin/main`, then verify the HEADs match. Do not deploy unpublished feature-branch commits or use a transfer bundle as a substitute for publication. Confirm the live host and target instance, preserve recoverable state, verify after startup, and clean up task-created staging and backups after successful checks.
 
 For repository tasks, commit and push reviewed, public-safe changes to `origin/main` as part of completing the task unless the user asks otherwise. Do not ask for separate permission to commit or push. Stage only changes belonging to the task; preserve unrelated pre-existing work. If branch protection or a review requirement blocks a direct push, prepare the required review path and report the blocker.
