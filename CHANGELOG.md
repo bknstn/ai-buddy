@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- Added the optional Audigest tool for Hermes attachments, transcription, summaries, and English notes.
+
 ## 0.2.0
 
 - Added the optional `buddy-software-engineer` skill for Hermes. The main agent plans the work and reviews changes, while GPT-6 Luna subagents implement and test them with `xhigh` reasoning effort.

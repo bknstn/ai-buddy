@@ -17,6 +17,7 @@ from buddy.runtime import ArtifactMapping
 
 CAPABILITIES = frozenset({"instruction_files", "plugin_files", "script_files", "skill_files"})
 FEATURES = {
+    "buddy-audigest": frozenset({"plugin_files"}),
     "buddy-heartbeat": frozenset({"script_files", "instruction_files"}),
     "buddy-live-progress": frozenset({"plugin_files"}),
     "buddy-openai-web": frozenset({"plugin_files"}),
@@ -83,7 +84,7 @@ class HermesAdapter:
                         kind=kind,
                         note="Manual installation only; collectors may access external sources when explicitly run.",
                     ))
-            elif feature in {"buddy-live-progress", "buddy-openai-web", "buddy-session-policy"}:
+            elif feature in {"buddy-audigest", "buddy-live-progress", "buddy-openai-web", "buddy-session-policy"}:
                 folder = integration_root / feature
                 for name in ("__init__.py", "plugin.yaml"):
                     source = folder / name

@@ -201,13 +201,17 @@ class BuddyProfileTests(unittest.TestCase):
             CONFIG.replace('id = "fake"', 'id = "hermes"')
             .format(
                 home=self.runtime_home,
-                enabled='["buddy-live-progress", "google-calendar", "buddy-software-engineer"]',
+                enabled='["buddy-audigest", "buddy-live-progress", "google-calendar", "buddy-software-engineer"]',
             ),
             encoding="utf-8",
         )
         plan = make_plan(self.profile_dir, adapter=get_adapter())
         self.assertTrue(plan["mappings"])
         self.assertEqual(plan["runtime_environment"]["ASSISTANT_TIMEZONE"], "UTC")
+        self.assertIn(
+            str(self.runtime_home / "plugins" / "buddy-audigest" / "__init__.py"),
+            [item["destination"] for item in plan["mappings"] if item["kind"] == "plugin"],
+        )
         self.assertIn(
             str(self.runtime_home / "skills" / "buddy-software-engineer" / "SKILL.md"),
             [item["destination"] for item in plan["mappings"] if item["kind"] == "skill"],

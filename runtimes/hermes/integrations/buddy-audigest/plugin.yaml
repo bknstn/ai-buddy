@@ -1,0 +1,10 @@
+name: buddy-audigest
+version: 0.1.0
+description: Process attachments and saved transcripts with the external Audigest CLI.
+kind: standalone
+provides_tools:
+  - audigest
+config_schema:
+  model:
+    type: string
+    description: Optional OpenAI model override for summaries and English notes.

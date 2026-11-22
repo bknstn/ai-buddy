@@ -17,6 +17,7 @@ Enabling a feature only selects source mappings for manual review. It does not i
 
 | Feature ID | Planned assets | Scope and limits |
 | --- | --- | --- |
+| `buddy-audigest` | plugin source | Optional local attachment processing and cached transcript tools. See [Audigest setup](integrations/buddy-audigest/README.md). |
 | `buddy-heartbeat` | scripts and instruction fragments | Optional bounded review and delivery gate. It has no job or delivery schedule by default. When explicitly configured and run, its current daily collector reads Calendar, Tasks and bounded authorized conversation context. It contains no implicit domain-engine collectors. |
 | `buddy-live-progress` | plugin source | Uses Hermes gateway interfaces and requires native compatibility checks. |
 | `buddy-openai-web` | plugin source | Optional OpenAI web-search backend; needs separately configured provider access and runtime dependencies. |
