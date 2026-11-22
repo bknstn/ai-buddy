@@ -26,6 +26,23 @@ _ERRORS = {
     6: "No cached result was available or the selected processor failed.",
     7: "An Audigest dependency is missing.",
 }
+# Only forward known CLI diagnostics. Raw stderr may contain paths or private data.
+_SUMMARY_ERRORS = frozenset({
+    "Cannot summarize a transcript with no non-whitespace text.",
+    "No matching cached summary was found; provider 'auto' is cache-only. "
+    "Choose --provider openai to create a summary.",
+    "Transcript is too large to summarize in one request (maximum input is 256 KiB).",
+    "OpenAI summarization requires OPENAI_API_KEY in the environment. Set it or use "
+    "a matching cached summary.",
+    "OpenAI summarization failed. Check API access, model availability, and account limits.",
+    "OpenAI did not complete the structured summary response.",
+    "OpenAI refused to summarize this transcript.",
+    "OpenAI returned no complete structured summary.",
+    "OpenAI returned an invalid structured summary.",
+    "OpenAI returned a summary point with empty text or evidence.",
+    "OpenAI returned a citation outside the transcript segment range.",
+    "OpenAI returned a quote that does not match its cited segment.",
+})
 
 
 def _local_input(value, profile, attachment_dirs, *, sidecars):
@@ -114,8 +131,14 @@ def _run(args, profile, attachment_dirs, get_secret, model):
     except OSError:
         return {"error": "Could not start the Audigest CLI."}
     if result.returncode:
+        error = _ERRORS.get(result.returncode, "The Audigest CLI failed.")
+        if operation == "summarize" and result.returncode == 6:
+            last_line = result.stderr.rstrip().rpartition(b"\n")[2].decode("utf-8", errors="replace")
+            prefix, separator, detail = last_line.partition(": ")
+            if prefix == "Error" and separator and detail in _SUMMARY_ERRORS:
+                error = detail
         return {
-            "error": _ERRORS.get(result.returncode, "The Audigest CLI failed."),
+            "error": error,
             "exit_code": result.returncode,
         }
     try:

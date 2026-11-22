@@ -17,6 +17,28 @@ SPEC.loader.exec_module(PLUGIN)
 
 
 class AudigestIntegrationTests(unittest.TestCase):
+    def test_summary_failure_returns_only_recognized_cli_diagnostics(self):
+        with tempfile.TemporaryDirectory() as directory:
+            profile = Path(directory).resolve()
+            executable = profile / "audigest" / "venv" / "bin" / "audigest"
+            executable.parent.mkdir(parents=True)
+            executable.touch()
+            args = {"operation": "summarize", "input": "sample-id", "use_openai": True}
+            key = Mock(return_value="synthetic-openai-key")
+            known = "OpenAI returned a quote that does not match its cited segment."
+            for detail, expected in (
+                (known, known),
+                (f"{known} {key.return_value}", PLUGIN._ERRORS[6]),
+            ):
+                with self.subTest(detail=detail):
+                    stderr = f"Progress: /private/sample.txt\nError: {detail}\n".encode()
+                    result = subprocess.CompletedProcess([], 6, b"", stderr)
+                    with patch.object(PLUGIN.subprocess, "run", return_value=result):
+                        self.assertEqual(
+                            PLUGIN._run(args, profile, (), key, None),
+                            {"error": expected, "exit_code": 6},
+                        )
+
     def test_transcription_requires_explicit_openai_and_passes_only_its_credential(self):
         with tempfile.TemporaryDirectory() as directory:
             profile = Path(directory).resolve()
