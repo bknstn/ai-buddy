@@ -5,6 +5,6 @@ kind: standalone
 provides_tools:
   - audigest
 config_schema:
-  model:
+  processor_model:
     type: string
     description: Optional OpenAI model override for summaries and English notes.

@@ -23,7 +23,7 @@ HERMES_HOME="$HERMES_HOME" hermes plugins enable buddy-audigest
 
 Enable the `audigest` toolset for the intended channels if the profile uses a toolset allowlist. Reload the intended Hermes gateway and verify the tool appears for its enabled channels. For the optional profile planner mapping, add `buddy-audigest` to the existing private profile's `features.enabled` list.
 
-The plugin uses the active profile's `OPENAI_API_KEY` through Hermes's secret store for calls with `use_openai: true`. Keep the credential in that store. Selecting OpenAI can upload the audio or transcript text and incur charges. Ingest tries local text and captions first. With `use_openai` omitted, ingestion uses existing text or a cached transcript, and the processors use their caches. To override Audigest's default processor model, set `plugins.entries.buddy-audigest.settings.model` in the Hermes profile.
+The plugin uses the active profile's `OPENAI_API_KEY` through Hermes's secret store for calls with `use_openai: true`. Keep the credential in that store. Selecting OpenAI can upload the audio or transcript text and incur charges. Ingest tries local text and captions first. With `use_openai` omitted, ingestion uses existing text or a cached transcript, and the processors use their caches. To override Audigest's default processor model, set `plugins.entries.buddy-audigest.settings.processor_model` in the Hermes profile.
 
 ## Smoke test
 

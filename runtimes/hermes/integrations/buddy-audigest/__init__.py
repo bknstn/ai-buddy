@@ -138,7 +138,7 @@ def register(ctx):
     from agent.secret_scope import get_secret
     from hermes_constants import get_hermes_dir, get_hermes_home
 
-    model = ctx.get_config("model")
+    model = ctx.get_config("processor_model")
 
     def handle(args, **kwargs):
         profile = get_hermes_home().resolve()
